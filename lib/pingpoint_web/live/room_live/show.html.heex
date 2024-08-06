@@ -1,0 +1,34 @@
+<.header>
+  <%= @room.name %>
+  <:subtitle>Add a topic to get started.</:subtitle>
+  <:actions>
+    <.button id="new-topic" phx-click={JS.toggle(to: "#topic-form") |> JS.focus(to: "#topic-input")}>New Topic</.button>
+  </:actions>
+</.header>
+
+
+
+<.form for={@topic_form} id="topic-form" class="hidden mt-4" phx-submit="save_topic" phx-value-id={Ecto.UUID.generate()}}>
+  <.input id="topic-input" field={@topic_form[:subject]} />
+  <div class="mt-4 flex gap-x-1 justify-end">
+    <.button>Save</.button>
+    <.button phx-click={JS.toggle(to: "#topic-form")}>Hide</.button>
+  </div>
+</.form>
+
+<section class="flex flex-col gap-y-2" id="topics" phx-update="stream">
+  <article :for={{id, topic} <- @streams.topics}>Topic: <%= topic.subject %></article>
+</section>
+
+<.back navigate={~p"/rooms"}>Back to rooms</.back>
+
+<.modal :if={@live_action == :edit} id="room-modal" show on_cancel={JS.patch(~p"/rooms/#{@room}")}>
+  <.live_component
+    module={PingpokerWeb.RoomLive.FormComponent}
+    id={@room.id}
+    title={@page_title}
+    action={@live_action}
+    room={@room}
+    patch={~p"/rooms/#{@room}"}
+  />
+</.modal>
