@@ -1,24 +1,45 @@
 <.header>
-  <%= @room.name %>
+  <%= @room.name %> <%= if @username, do: "- #{@username}" %>
   <:subtitle>Add a topic to get started.</:subtitle>
-  <:actions>
-    <.button id="new-topic" phx-click={JS.toggle(to: "#topic-form") |> JS.focus(to: "#topic-input")}>New Topic</.button>
-  </:actions>
 </.header>
 
+<.modal :if={!@username} id="set-user-modal" show>
+  <.simple_form action={~p"/set_user"} autocomplete="off" class="mt-4" for={@user_form} id="user-form">
+    <.input id="user-input" field={@user_form[:username]} label="Name" />
+    <:actions>
+      <.button class="w-full mt-4">Submit</.button>
+    </:actions>
+  </.simple_form>
+</.modal>
 
+<.simple_form id="topic-form" for={@topic_form} phx-submit="save_topic">
+  <.input autocomplete="off" autofocus="on" id={@topic_form.params["reset_key"]} field={@topic_form[:subject]} label="Topic"/>
+  <:actions>
+    <.button>Add</.button>
+  </:actions>
+</.simple_form>
 
-<.form for={@topic_form} id="topic-form" class="hidden mt-4" phx-submit="save_topic" phx-value-id={Ecto.UUID.generate()}}>
-  <.input id="topic-input" field={@topic_form[:subject]} />
-  <div class="mt-4 flex gap-x-1 justify-end">
-    <.button>Save</.button>
-    <.button phx-click={JS.toggle(to: "#topic-form")}>Hide</.button>
-  </div>
-</.form>
-
-<section class="flex flex-col gap-y-2" id="topics" phx-update="stream">
-  <article :for={{id, topic} <- @streams.topics}>Topic: <%= topic.subject %></article>
-</section>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Points</th>
+    </tr>
+  </thead>
+  <tbody id="topics" phx-update="stream">
+    <tr :for={{_id, topic} <- @streams.topics}>
+      <td>
+        <%= topic.subject %>
+      </td>
+      <td>
+        <.button class="btn-square btn-neutral">1</.button>
+        <.button class="btn-square btn-neutral">3</.button>
+        <.button class="btn-square btn-neutral">5</.button>
+        <.button class="btn-square btn-neutral">8</.button>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 <.back navigate={~p"/rooms"}>Back to rooms</.back>
 

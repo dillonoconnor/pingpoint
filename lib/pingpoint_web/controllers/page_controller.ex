@@ -6,14 +6,4 @@ defmodule PingpointWeb.PageController do
     # so skip the default app layout.
     render(conn, :home, layout: false)
   end
-
-  def init_user(conn, _params) do
-    render(conn, :init_user)
-  end
-
-  def set_user(conn, %{"username" => username}) do
-    conn
-    |> put_session("username", username)
-    |> redirect(to: Routes.rooms_live_path(conn, :index))
-  end
 end

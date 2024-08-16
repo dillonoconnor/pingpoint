@@ -50,7 +50,7 @@ defmodule PingpointWeb.CoreComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-50/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div id={"#{@id}-bg"} class="bg-zinc-900/70 fixed inset-0 transition-opacity" aria-hidden="true" />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -66,13 +66,13 @@ defmodule PingpointWeb.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class="relative hidden rounded-2xl bg-neutral p-14 shadow-lg transition"
             >
               <div class="absolute top-6 right-5">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  class="-m-3 flex-none p-3 opacity-60 hover:opacity-80"
                   aria-label={gettext("close")}
                 >
                   <.icon name="hero-x-mark-solid" class="h-5 w-5" />
@@ -202,9 +202,9 @@ defmodule PingpointWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
+      <div class="my-4 flex justify-between items-center">
         <%= render_slot(@inner_block, f) %>
-        <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
+        <div :for={action <- @actions}>
           <%= render_slot(action, f) %>
         </div>
       </div>
@@ -232,8 +232,8 @@ defmodule PingpointWeb.CoreComponents do
       type={@type}
       class={[
         @class,
-        "phx-submit-loading:opacity-75 rounded-lg bg-primary hover:bg-indigo-500 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "phx-submit-loading:opacity-75 rounded-lg btn py-2 px-3",
+        "text-sm font-semibold leading-6",
       ]}
       {@rest}
     >
@@ -269,6 +269,7 @@ defmodule PingpointWeb.CoreComponents do
       <.input name="my-input" errors={["oh no!"]} />
   """
   attr :id, :any, default: nil
+  attr :class, :string, default: nil
   attr :name, :any
   attr :label, :string, default: nil
   attr :value, :any
@@ -370,19 +371,20 @@ defmodule PingpointWeb.CoreComponents do
   def input(assigns) do
     ~H"""
     <div>
-      <.label for={@id}><%= @label %></.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "input input-bordered input-md input-primary mt-2 block w-full rounded-lg focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
-        ]}
-        {@rest}
-      />
+      <.label for={@id}>
+        <%= @label %>
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[
+            "border-none focus-within:ring-0",
+            @errors != [] && "border-rose-400 focus:border-rose-400"
+          ]}
+          {@rest}
+        />
+      </.label>
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -396,7 +398,7 @@ defmodule PingpointWeb.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class="input input-bordered flex items-center gap-2">
       <%= render_slot(@inner_block) %>
     </label>
     """

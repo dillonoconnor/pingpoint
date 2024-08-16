@@ -3,19 +3,21 @@ defmodule PingpointWeb.RoomLive.Show do
 
   alias Pingpoint.Spaces
 
-  @topic_form_default to_form %{"subject" => ""}
-  @user_form_default to_form %{"username" => ""} 
+  @user_form_default to_form %{"username" => nil} 
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
     socket = socket
     |> assign(
-        topic_form: @topic_form_default,
+        topic_form: topic_form_default(),
         user_form: @user_form_default,
+        username: session["username"],
         trigger_submit: false
       )
+    |> stream_configure(:topics, dom_id: fn _topic -> "topic-#{Ecto.UUID.generate()}" end)
     |> stream(:topics, [])
 
+    IO.inspect(session, label: "session stuff")
     {:ok, socket}
   end
 
@@ -32,8 +34,12 @@ defmodule PingpointWeb.RoomLive.Show do
 
     {:noreply,
      socket
-     |> assign(:form, @topic_form_default)
+     |> assign(:topic_form, to_form(%{"subject" => "", "reset_key" => :erlang.system_time(:millisecond) |> to_string()}))
      |> stream_insert(:topics, topic)}
+  end
+
+  defp topic_form_default do
+    to_form %{"subject" => "", "reset_key" => :erlang.system_time(:millisecond) |> to_string()}
   end
 
   defp page_title(:show), do: "Show Room"

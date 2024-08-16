@@ -18,7 +18,7 @@ defmodule PingpointWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    get "init_user", PageController, :init_user
+    post "set_user", SessionController, :set_user
 
     live "/rooms", RoomLive.Index, :index
     live "/rooms/new", RoomLive.Index, :new
