@@ -43,13 +43,20 @@ defmodule PingpointWeb.RoomLive.Show do
 
   @impl true
   def handle_event("save_topic", topic, socket) do
-    topic = Map.new(topic, fn {k,v} -> {String.to_existing_atom(k), v} end)
     TopicServer.add_topic("topic_server_1", topic)
+    IO.inspect(topic)
 
     {:noreply,
      socket
      |> assign(:topic_form, to_form(%{"subject" => "", "reset_key" => :erlang.system_time(:millisecond) |> to_string()}))
      |> stream_insert(:topics, topic)}
+  end
+
+  @impl true
+  def handle_event("remove_topic", %{"id" => id, "subject" => subject}, socket) do
+    topic = %{"subject" => subject}
+    TopicServer.remove_topic("topic_server_1", topic)
+    {:noreply, stream_delete_by_dom_id(socket, :topics, id)}
   end
 
   defp topic_form_default do

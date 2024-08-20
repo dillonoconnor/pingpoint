@@ -13,6 +13,10 @@ defmodule Pingpoint.TopicServer do
     GenServer.cast(String.to_atom(name), {:add_topic, topic})
   end
 
+  def remove_topic(name, topic) do
+    GenServer.cast(String.to_atom(name), {:remove_topic, topic})
+  end
+
   @impl true
   def init(initial_topics) do
     {:ok, initial_topics}
@@ -32,7 +36,6 @@ defmodule Pingpoint.TopicServer do
 
   @impl true
   def handle_call(:get_topics, _from, topics) do
-    IO.inspect(topics, label: "get_topics")
     {:reply, topics, topics}
   end
 end

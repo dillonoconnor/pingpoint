@@ -232,7 +232,7 @@ defmodule PingpointWeb.CoreComponents do
       type={@type}
       class={[
         @class,
-        "phx-submit-loading:opacity-75 rounded-lg btn py-2 px-3",
+        "phx-submit-loading:opacity-75 rounded-lg btn btn-neutral py-2 px-3",
         "text-sm font-semibold leading-6",
       ]}
       {@rest}

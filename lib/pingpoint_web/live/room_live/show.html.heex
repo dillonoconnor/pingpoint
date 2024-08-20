@@ -27,15 +27,31 @@
     </tr>
   </thead>
   <tbody id="topics" phx-update="stream">
-    <tr :for={{_id, topic} <- @streams.topics}>
+    <tr id={id} :for={{id, topic} <- @streams.topics}>
       <td>
-        <%= topic.subject %>
+        <%= topic["subject"] %>
       </td>
       <td>
-        <.button class="btn-square btn-neutral">1</.button>
-        <.button class="btn-square btn-neutral">3</.button>
-        <.button class="btn-square btn-neutral">5</.button>
-        <.button class="btn-square btn-neutral">8</.button>
+        <.button class="btn-square">1</.button>
+        <.button class="btn-square">3</.button>
+        <.button class="btn-square">5</.button>
+        <.button class="btn-square">8</.button>
+      </td>
+      <td>
+        <.button class="btn-square btn-ghost" phx-click="remove_topic" phx-value-id={id} phx-value-subject={topic["subject"]}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </.button>
       </td>
     </tr>
   </tbody>
