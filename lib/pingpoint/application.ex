@@ -16,6 +16,7 @@ defmodule Pingpoint.Application do
       {Finch, name: Pingpoint.Finch},
       # Start a worker by calling: Pingpoint.Worker.start_link(arg)
       # {Pingpoint.Worker, arg},
+      {DynamicSupervisor, name: Pingpoint.DynamicSupervisor, strategy: :one_for_one},
       # Start to serve requests, typically the last entry
       PingpointWeb.Endpoint
     ]
