@@ -1,5 +1,5 @@
 <.header>
-  <%= @room.name %> <%= if @username, do: "- #{@username}" %>
+  <%= @room.name %>
   <:subtitle>Add a topic to get started.</:subtitle>
 </.header>
 
@@ -13,7 +13,9 @@
 </.modal>
 
 <.simple_form id="topic-form" for={@topic_form} phx-submit="save_topic">
-  <.input autocomplete="off" autofocus="on" id={@topic_form.params["reset_key"]} field={@topic_form[:subject]} label="Topic"/>
+  <div class="w-full">
+    <.input autocomplete="off" autofocus="on" id={@topic_form.params["reset_key"]} field={@topic_form[:subject]} label="Topic"/>
+  </div>
   <:actions>
     <.button>Add</.button>
   </:actions>
@@ -22,12 +24,18 @@
 <table class="table">
   <thead>
     <tr>
+      <th class="pl-0.5">User</th>
       <th>Title</th>
       <th>Points</th>
     </tr>
   </thead>
   <tbody id="topics" phx-update="stream">
     <tr id={id} :for={{id, topic} <- @streams.topics}>
+      <td class="avatar pl-0.5">
+        <div class="w-10 rounded ring ring-4 ring-neutral">
+          <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+        </div>
+      </td>
       <td>
         <%= topic["subject"] %>
       </td>
@@ -38,7 +46,7 @@
         <.button class="btn-square">8</.button>
       </td>
       <td>
-        <.button class="btn-square btn-ghost" phx-click="remove_topic" phx-value-id={id} phx-value-subject={topic["subject"]}>
+        <.button class="btn-square btn-ghost" phx-click="remove_topic" phx-value-topic-id={id}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-6 w-6"

@@ -25,13 +25,12 @@ defmodule Pingpoint.TopicServer do
   @impl true
   def handle_cast({:add_topic, topic}, topics) do
     state = [ topic | topics]
-    IO.inspect(state)
     {:noreply, state}
   end
 
   @impl true
-  def handle_cast({:remove_topic, topic}, topics) do
-    {:noreply, List.delete(topics, topic)}
+  def handle_cast({:remove_topic, topic_id}, topics) do
+    {:noreply, Enum.reject(topics, fn topic -> Map.get(topic, :topic_id) == topic_id end)}
   end
 
   @impl true

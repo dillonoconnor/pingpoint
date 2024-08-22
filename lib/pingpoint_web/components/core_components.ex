@@ -202,7 +202,7 @@ defmodule PingpointWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="my-4 flex justify-between items-center">
+      <div class="my-4 flex justify-between items-center gap-8">
         <%= render_slot(@inner_block, f) %>
         <div :for={action <- @actions}>
           <%= render_slot(action, f) %>
