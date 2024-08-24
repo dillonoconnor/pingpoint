@@ -1,12 +1,13 @@
 defmodule PingpointWeb.RoomLive.Show do
   use PingpointWeb, :live_view
 
+  alias Phoenix.PubSub
   alias Pingpoint.Spaces
   alias Pingpoint.TopicServer
-  alias Phoenix.PubSub
 
-  @user_form_default to_form %{"username" => nil}
   @pubsub_name Pingpoint.PubSub
+  @topic_form_default to_form %{"subject" => ""}
+  @user_form_default to_form %{"username" => nil}
 
   @impl true
   def mount(%{"id" => id}, session, socket) do
@@ -17,21 +18,16 @@ defmodule PingpointWeb.RoomLive.Show do
     socket =
       case start_topic_server(id) do
         {:error, {:already_started, _pid}} ->
-          socket
-          # these change after each refresh which is bad for state management
-          |> stream_configure(:topics, dom_id: fn _topic -> "topic-#{Ecto.UUID.generate()}" end)
-          |> stream(:topics, TopicServer.get_topics("topic_server_#{id}"))
+          socket |> stream(:topics, TopicServer.get_topics("topic_server_#{id}"))
         _ ->
-          socket
-          |> stream_configure(:topics, dom_id: fn _topic -> "topic-#{Ecto.UUID.generate()}" end)
-          |> stream(:topics, [])
+          socket |> stream(:topics, [])
       end
 
     socket =
       socket
       |> assign(
           room_id: room_id,
-          topic_form: topic_form_default(),
+          topic_form: @topic_form_default,
           user_form: @user_form_default,
           username: session["username"],
           trigger_submit: false
@@ -51,35 +47,27 @@ defmodule PingpointWeb.RoomLive.Show do
   @impl true
   def handle_event("save_topic", topic, socket) do
     PubSub.broadcast(@pubsub_name, socket.assigns.room_id, {:topic_created, topic})
-    {:noreply, socket}
+    {:noreply, assign(socket, :topic_form, @topic_form_default)}
   end
 
   @impl true
-  def handle_event("remove_topic", %{"topic-id" => topic_id}, socket) do
+  def handle_event("remove_topic", %{"topic-id" => topic_id} = params, socket) do
+    IO.inspect(topic_id, label: "a")
     PubSub.broadcast(@pubsub_name, socket.assigns.room_id, {:topic_deleted, topic_id})
     {:noreply, socket}
   end
 
   @impl true
   def handle_info({:topic_created, topic}, socket) do
-    socket = socket
-    |> assign(:topic_form, to_form(%{"subject" => "", "reset_key" => :erlang.system_time(:millisecond) |> to_string()}))
-    |> stream_insert(:topics, topic)
-
-    topic = Map.put(topic, :topic_id, socket.assigns.streams.topics.inserts |> hd() |> elem(0))
+    topic = normalize_topic(topic)
     TopicServer.add_topic("topic_server_1", topic)
-    {:noreply, socket}
+    {:noreply, stream_insert(socket, :topics, topic)}
   end
 
   @impl true
-  def handle_info({:topic_deleted, topic_id} = message, socket) do
-    IO.inspect(message)
+  def handle_info({:topic_deleted, topic_id}, socket) do
     TopicServer.remove_topic("topic_server_1", topic_id)
     {:noreply, stream_delete_by_dom_id(socket, :topics, topic_id)}
-  end
-
-  defp topic_form_default do
-    to_form %{"subject" => "", "reset_key" => :erlang.system_time(:millisecond) |> to_string()}
   end
 
   defp page_title(:show), do: "Show Room"
@@ -87,5 +75,12 @@ defmodule PingpointWeb.RoomLive.Show do
 
   defp start_topic_server(id) do
     DynamicSupervisor.start_child(Pingpoint.DynamicSupervisor, {TopicServer, [[], name: "topic_server_#{id}"]})
+  end
+
+  defp normalize_topic(params) do
+    Enum.into(params, %{}, fn {k,v} -> {String.to_atom(k), v} end)
+    |> Map.put(:id, Ecto.UUID.generate())
+    # |> then(fn topic -> Map.put(topic, :id, Map.get(topic, :topic_id)) end)
+    # |> Map.delete(:topic_id)
   end
 end

@@ -13,8 +13,8 @@ defmodule Pingpoint.TopicServer do
     GenServer.cast(String.to_atom(name), {:add_topic, topic})
   end
 
-  def remove_topic(name, topic) do
-    GenServer.cast(String.to_atom(name), {:remove_topic, topic})
+  def remove_topic(name, topic_id) do
+    GenServer.cast(String.to_atom(name), {:remove_topic, topic_id})
   end
 
   @impl true
@@ -30,7 +30,8 @@ defmodule Pingpoint.TopicServer do
 
   @impl true
   def handle_cast({:remove_topic, topic_id}, topics) do
-    {:noreply, Enum.reject(topics, fn topic -> Map.get(topic, :topic_id) == topic_id end)}
+    trimmed_dom_id = String.replace(topic_id, "topics-", "")
+    {:noreply, Enum.reject(topics, fn topic -> topic.id == trimmed_dom_id end)}
   end
 
   @impl true

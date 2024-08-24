@@ -14,7 +14,7 @@
 
 <.simple_form id="topic-form" for={@topic_form} phx-submit="save_topic">
   <div class="w-full">
-    <.input autocomplete="off" autofocus="on" id={@topic_form.params["reset_key"]} field={@topic_form[:subject]} label="Topic"/>
+    <.input autocomplete="off" autofocus="on" field={@topic_form[:subject]} label="Topic"/>
   </div>
   <:actions>
     <.button>Add</.button>
@@ -37,7 +37,7 @@
         </div>
       </td>
       <td>
-        <%= topic["subject"] %>
+        <%= topic[:subject] %>
       </td>
       <td>
         <.button class="btn-square">1</.button>
