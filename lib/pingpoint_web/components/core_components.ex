@@ -50,7 +50,11 @@ defmodule PingpointWeb.CoreComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-zinc-900/70 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div
+        id={"#{@id}-bg"}
+        class="bg-zinc-900/70 fixed inset-0 transition-opacity"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -191,6 +195,7 @@ defmodule PingpointWeb.CoreComponents do
   """
   attr :for, :any, required: true, doc: "the data structure for the form"
   attr :as, :any, default: nil, doc: "the server side parameter to collect all input under"
+  attr :class, :string, default: nil
 
   attr :rest, :global,
     include: ~w(autocomplete name rel action enctype method novalidate target multipart),
@@ -201,12 +206,10 @@ defmodule PingpointWeb.CoreComponents do
 
   def simple_form(assigns) do
     ~H"""
-    <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="my-4 flex justify-between items-center gap-8">
-        <%= render_slot(@inner_block, f) %>
-        <div :for={action <- @actions}>
-          <%= render_slot(action, f) %>
-        </div>
+    <.form :let={f} class={[@class]} for={@for} as={@as} {@rest}>
+      <%= render_slot(@inner_block, f) %>
+      <div :for={action <- @actions}>
+        <%= render_slot(action, f) %>
       </div>
     </.form>
     """
@@ -233,7 +236,7 @@ defmodule PingpointWeb.CoreComponents do
       class={[
         @class,
         "phx-submit-loading:opacity-75 rounded-lg btn btn-neutral py-2 px-3",
-        "text-sm font-semibold leading-6",
+        "text-sm font-semibold leading-6"
       ]}
       {@rest}
     >
@@ -561,10 +564,7 @@ defmodule PingpointWeb.CoreComponents do
   def back(assigns) do
     ~H"""
     <div class="mt-16">
-      <.link
-        navigate={@navigate}
-        class="text-sm font-semibold leading-6 hover:text-primary"
-      >
+      <.link navigate={@navigate} class="text-sm font-semibold leading-6 hover:text-primary">
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
         <%= render_slot(@inner_block) %>
       </.link>

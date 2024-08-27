@@ -4,46 +4,76 @@
 </.header>
 
 <.modal :if={!@username} id="set-user-modal" show>
-  <.simple_form action={~p"/set_user"} autocomplete="off" class="mt-4" for={@user_form} id="user-form">
-    <.input id="user-input" field={@user_form[:username]} label="Name" />
+  <.simple_form
+    action={~p"/set_user"}
+    autocomplete="off"
+    class="mt-4"
+    for={@user_form}
+    id="user-form"
+  >
+    <div class="w-full">
+      <.input id="user-input" field={@user_form[:username]} label="Name" />
+    </div>
     <:actions>
       <.button class="w-full mt-4">Submit</.button>
     </:actions>
   </.simple_form>
 </.modal>
 
-<.simple_form id="topic-form" for={@topic_form} phx-submit="save_topic">
+<.simple_form
+  class="my-8 flex justify-between gap-8"
+  for={@topic_form}
+  phx-change="validate_topic"
+  phx-submit="save_topic"
+>
   <div class="w-full">
-    <.input autocomplete="off" autofocus="on" field={@topic_form[:subject]} label="Topic"/>
+    <.input
+      id="topic-input"
+      autocomplete="off"
+      autofocus="on"
+      field={@topic_form[:subject]}
+      label="Topic"
+    />
   </div>
   <:actions>
-    <.button>Add</.button>
+    <.button phx-click={JS.focus(to: "#topic-input")}>Add</.button>
   </:actions>
 </.simple_form>
 
 <table class="table">
   <thead>
     <tr>
+      <th>Topic</th>
       <th class="pl-0.5">User</th>
       <th>Title</th>
       <th>Points</th>
     </tr>
   </thead>
   <tbody id="topics" phx-update="stream">
-    <tr id={id} :for={{id, topic} <- @streams.topics}>
-      <td class="avatar pl-0.5">
-        <div class="w-10 rounded ring ring-4 ring-neutral">
-          <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+    <tr :for={{id, topic} <- @streams.topics} class="first:bg-base-200 first:rounded" id={id}>
+      <td><%= topic.row_number %></td>
+      <td class="avatar pl-0">
+        <div class="mask mask-squircle h-12 w-12">
+          <img src="https://img.daisyui.com/images/profile/demo/5@94.webp" />
         </div>
       </td>
       <td>
         <%= topic[:subject] %>
       </td>
       <td>
-        <.button class="btn-square">1</.button>
-        <.button class="btn-square">3</.button>
-        <.button class="btn-square">5</.button>
-        <.button class="btn-square">8</.button>
+        <.simple_form class="flex gap-4" for={@point_form} phx-change="save_point">
+          <label :for={point_value <- ~w(1 2 3 4 5)} class="label gap-2 cursor-pointer">
+            <span class="label-text"><%= point_value %></span>
+            <input type="hidden" name="topic_id" value={id} />
+            <input
+              checked={topic.points[@username] == point_value}
+              class="radio radio-primary"
+              name="point"
+              type="radio"
+              value={point_value}
+            />
+          </label>
+        </.simple_form>
       </td>
       <td>
         <.button class="btn-square btn-ghost" phx-click="remove_topic" phx-value-topic-id={id}>
@@ -52,12 +82,14 @@
             class="h-6 w-6"
             fill="none"
             viewBox="0 0 24 24"
-            stroke="currentColor">
+            stroke="currentColor"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M6 18L18 6M6 6l12 12" />
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </.button>
       </td>
