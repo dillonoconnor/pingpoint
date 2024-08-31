@@ -19,85 +19,93 @@
     </:actions>
   </.simple_form>
 </.modal>
+<section class="flex justify-between gap-8">
+  <article class="grow">
+    <.simple_form
+      class="my-8 flex justify-between gap-8"
+      for={@topic_form}
+      phx-change="validate_topic"
+      phx-submit="save_topic"
+    >
+      <div class="w-full">
+        <.input
+          class="grow"
+          id="topic-input"
+          autocomplete="off"
+          autofocus="on"
+          field={@topic_form[:subject]}
+          label="Topic"
+        />
+      </div>
+      <:actions>
+        <.button phx-click={JS.focus(to: "#topic-input")}>Add</.button>
+      </:actions>
+    </.simple_form>
 
-<.simple_form
-  class="my-8 flex justify-between gap-8"
-  for={@topic_form}
-  phx-change="validate_topic"
-  phx-submit="save_topic"
->
-  <div class="w-full">
-    <.input
-      id="topic-input"
-      autocomplete="off"
-      autofocus="on"
-      field={@topic_form[:subject]}
-      label="Topic"
-    />
-  </div>
-  <:actions>
-    <.button phx-click={JS.focus(to: "#topic-input")}>Add</.button>
-  </:actions>
-</.simple_form>
-
-<table class="table">
-  <thead>
-    <tr>
-      <th>Topic</th>
-      <th class="pl-0.5">User</th>
-      <th>Title</th>
-      <th>Points</th>
-    </tr>
-  </thead>
-  <tbody id="topics" phx-update="stream">
-    <tr :for={{id, topic} <- @streams.topics} class="first:bg-base-200 first:rounded" id={id}>
-      <td><%= topic.row_number %></td>
-      <td class="avatar pl-0">
-        <div class="mask mask-squircle h-12 w-12">
-          <img src="https://img.daisyui.com/images/profile/demo/5@94.webp" />
-        </div>
-      </td>
-      <td>
-        <%= topic[:subject] %>
-      </td>
-      <td>
-        <.simple_form class="flex gap-4" for={@point_form} phx-change="save_point">
-          <label :for={point_value <- ~w(1 2 3 4 5)} class="label gap-2 cursor-pointer">
-            <span class="label-text"><%= point_value %></span>
-            <input type="hidden" name="topic_id" value={id} />
-            <input
-              checked={topic.points[@username] == point_value}
-              class="radio radio-primary"
-              name="point"
-              type="radio"
-              value={point_value}
-            />
-          </label>
-        </.simple_form>
-      </td>
-      <td>
-        <.button class="btn-square btn-ghost" phx-click="remove_topic" phx-value-topic-id={id}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </.button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<.back navigate={~p"/rooms"}>Back to rooms</.back>
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="text-center">Topic</th>
+          <th class="pl-0.5">User</th>
+          <th>Title</th>
+          <th>Points</th>
+          <th>Average</th>
+        </tr>
+      </thead>
+      <tbody id="topics" phx-update="stream">
+        <tr :for={{id, topic} <- @streams.topics} class="first:bg-base-200 first:rounded" id={id}>
+          <td class="text-center"><%= topic.row_number %></td>
+          <td class="avatar pl-0">
+            <div class="mask mask-squircle h-12 w-12">
+              <img src="https://img.daisyui.com/images/profile/demo/5@94.webp" />
+            </div>
+          </td>
+          <td>
+            <%= topic[:subject] %>
+          </td>
+          <td>
+            <.simple_form class="flex gap-4" for={@point_form} phx-change="save_point">
+              <label :for={point_value <- ~w(1 2 3 5 8)} class="label gap-2 cursor-pointer">
+                <span class="label-text"><%= point_value %></span>
+                <input type="hidden" name="topic_id" value={id} />
+                <input
+                  disabled={!topic.current}
+                  checked={topic.points[@username] == point_value}
+                  class="radio radio-primary"
+                  name="point"
+                  type="radio"
+                  value={point_value}
+                />
+              </label>
+            </.simple_form>
+          </td>
+          <td>
+            <%= topic.average %>
+          </td>
+          <td>
+            <.button class="btn-square btn-ghost" phx-click="remove_topic" phx-value-topic-id={id}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </.button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <.back navigate={~p"/rooms"}>Back to rooms</.back>
+  </article>
+</section>
 
 <.modal :if={@live_action == :edit} id="room-modal" show on_cancel={JS.patch(~p"/rooms/#{@room}")}>
   <.live_component

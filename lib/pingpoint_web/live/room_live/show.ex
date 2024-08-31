@@ -65,7 +65,7 @@ defmodule PingpointWeb.RoomLive.Show do
   def handle_event("save_topic", topic, socket) do
     room_id = socket.assigns.room_id
     topic = normalize_topic(topic, room_id)
-    TopicServer.add_topic(socket.assigns.room_id, topic)
+    TopicServer.add_topic(room_id, topic)
     PubSub.broadcast(@pubsub_name, room_id, {:topic_created, topic})
     {:noreply, assign(socket, :topic_form, @topic_form_default)}
   end
@@ -78,8 +78,20 @@ defmodule PingpointWeb.RoomLive.Show do
   end
 
   @impl true
-  def handle_info({event, topic}, socket) when event in [:topic_created, :topic_updated] do
-    {:noreply, stream_insert(socket, :topics, topic, at: 0)}
+  def handle_info({:topic_created, topic}, socket) do
+    prev_topic = TopicServer.get_topic(socket.assigns.room_id, topic.row_number - 1)
+    socket = socket
+    |> (fn sock -> if prev_topic, do: stream_insert(sock, :topics, prev_topic, at: 1), else: sock end).()
+    |> stream_insert(:topics, topic, at: 0)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:topic_updated, topic}, socket) do
+    socket = stream_insert(socket, :topics, topic, at: 0)
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -101,6 +113,12 @@ defmodule PingpointWeb.RoomLive.Show do
     row_number = TopicServer.topic_count(room_id) + 1
 
     Enum.into(params, %{}, fn {k, v} -> {String.to_atom(k), v} end)
-    |> Map.merge(%{id: Ecto.UUID.generate(), points: %{}, row_number: row_number})
+    |> Map.merge(%{
+        id: Ecto.UUID.generate(),
+        points: %{},
+        row_number: row_number,
+        current: true,
+        average: nil,
+      })
   end
 end

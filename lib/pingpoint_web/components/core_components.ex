@@ -382,6 +382,7 @@ defmodule PingpointWeb.CoreComponents do
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
+            @class,
             "border-none focus-within:ring-0",
             @errors != [] && "border-rose-400 focus:border-rose-400"
           ]}
