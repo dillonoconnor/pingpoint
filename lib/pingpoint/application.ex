@@ -12,6 +12,7 @@ defmodule Pingpoint.Application do
       Pingpoint.Repo,
       {DNSCluster, query: Application.get_env(:pingpoint, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Pingpoint.PubSub},
+      PingpointWeb.Presence,
       # Start the Finch HTTP client for sending emails
       {Finch, name: Pingpoint.Finch},
       # Start a worker by calling: Pingpoint.Worker.start_link(arg)

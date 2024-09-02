@@ -19,7 +19,18 @@
     </:actions>
   </.simple_form>
 </.modal>
-<section class="flex justify-between gap-8">
+<section class="flex justify-between gap-20">
+  <article>
+    <h3 class="my-8">In the room:</h3>
+    <ul class="flex">
+      <li :for={{user, meta} <- @presences} class="grow">
+        <div class="flex justify-evenly items-center bg-neutral p-2 rounded-md border border-info text-center">
+          <%= user %>
+          <.icon name={if meta.thinking, do: "hero-ellipsis-horizontal", else: "hero-check"} />
+        </div>
+      </li>
+    </ul>
+  </article>
   <article class="grow">
     <.simple_form
       class="my-8 flex justify-between gap-8"
@@ -35,9 +46,11 @@
           autofocus="on"
           field={@topic_form[:subject]}
           label="Topic"
+          phx-debounce="1000"
         />
       </div>
       <:actions>
+        <!-- won't overwrite with enter b/c element focus is not lost -->
         <.button phx-click={JS.focus(to: "#topic-input")}>Add</.button>
       </:actions>
     </.simple_form>

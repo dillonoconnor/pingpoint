@@ -4,6 +4,7 @@ defmodule PingpointWeb.RoomLive.Show do
   alias Phoenix.PubSub
   alias Pingpoint.Spaces
   alias Pingpoint.TopicServer
+  alias PingpointWeb.Presence
 
   @pubsub_name Pingpoint.PubSub
   @point_form_default to_form(%{})
@@ -13,13 +14,27 @@ defmodule PingpointWeb.RoomLive.Show do
   @impl true
   def mount(%{"id" => id}, session, socket) do
     room_id = "topic_server_#{id}"
+    topic_id = "users:topic_#{id}"
+    username = session["username"]
 
-    if connected?(socket), do: PubSub.subscribe(@pubsub_name, room_id)
+    if connected?(socket) do
+      Presence.track(self(), topic_id, username, %{
+        thinking: true
+      })
+
+      PubSub.subscribe(@pubsub_name, room_id)
+    end
+
+    presences =
+      Presence.list(topic_id)
+      |> Enum.into(%{}, fn {user, %{metas: [meta | _]}} ->
+        {user, meta}
+      end)
 
     socket =
       case start_topic_server(id) do
         {:error, {:already_started, _pid}} ->
-          socket |> stream(:topics, TopicServer.get_topics("topic_server_#{id}"))
+          socket |> stream(:topics, TopicServer.get_topics(room_id))
 
         _ ->
           socket |> stream(:topics, [])
@@ -32,7 +47,8 @@ defmodule PingpointWeb.RoomLive.Show do
         point_form: @point_form_default,
         topic_form: @topic_form_default,
         user_form: @user_form_default,
-        username: session["username"]
+        username: username,
+        presences: presences
       )
 
     {:ok, socket}
@@ -57,7 +73,6 @@ defmodule PingpointWeb.RoomLive.Show do
 
   @impl true
   def handle_event("validate_topic", %{"subject" => subject}, socket) do
-    IO.inspect(subject)
     {:noreply, assign(socket, :topic_form, to_form(%{"subject" => subject}))}
   end
 
@@ -80,9 +95,13 @@ defmodule PingpointWeb.RoomLive.Show do
   @impl true
   def handle_info({:topic_created, topic}, socket) do
     prev_topic = TopicServer.get_topic(socket.assigns.room_id, topic.row_number - 1)
-    socket = socket
-    |> (fn sock -> if prev_topic, do: stream_insert(sock, :topics, prev_topic, at: 1), else: sock end).()
-    |> stream_insert(:topics, topic, at: 0)
+
+    socket =
+      socket
+      |> (fn sock ->
+            if prev_topic, do: stream_insert(sock, :topics, prev_topic, at: 1), else: sock
+          end).()
+      |> stream_insert(:topics, topic, at: 0)
 
     {:noreply, socket}
   end
@@ -114,11 +133,11 @@ defmodule PingpointWeb.RoomLive.Show do
 
     Enum.into(params, %{}, fn {k, v} -> {String.to_atom(k), v} end)
     |> Map.merge(%{
-        id: Ecto.UUID.generate(),
-        points: %{},
-        row_number: row_number,
-        current: true,
-        average: nil,
-      })
+      id: Ecto.UUID.generate(),
+      points: %{},
+      row_number: row_number,
+      current: true,
+      average: nil
+    })
   end
 end

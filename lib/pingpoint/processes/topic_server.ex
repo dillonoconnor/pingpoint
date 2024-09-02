@@ -21,6 +21,7 @@ defmodule Pingpoint.TopicServer do
         prev_topic_id = get_topics(name) |> hd() |> Map.get(:id)
         average = topic_average(name, prev_topic_id)
         GenServer.cast(topic_name, {:add_topic, topic, average})
+
       true ->
         GenServer.cast(topic_name, {:add_topic, topic, nil})
     end
@@ -49,8 +50,9 @@ defmodule Pingpoint.TopicServer do
 
   @impl true
   def handle_cast({:add_topic, topic, average}, topics) do
-    updated_topics = [topic | topics]
-    |> List.update_at(1, &(Map.merge(&1, %{current: false, average: average})))
+    updated_topics =
+      [topic | topics]
+      |> List.update_at(1, &Map.merge(&1, %{current: false, average: average}))
 
     {:noreply, updated_topics}
   end
@@ -95,14 +97,17 @@ defmodule Pingpoint.TopicServer do
   @impl true
   def handle_call({:topic_average, topic_id}, _from, topics) do
     IO.inspect(topic_id, label: "the id")
-    topic_average = find_topic(topic_id, topics)
-    |> then(fn topic ->
-      points = topic.points
-      |> Map.values()
-      |> Enum.map(&String.to_integer/1)
 
-      if Enum.empty?(points), do: 0, else: Enum.sum(points) / length(points)
-    end)
+    topic_average =
+      find_topic(topic_id, topics)
+      |> then(fn topic ->
+        points =
+          topic.points
+          |> Map.values()
+          |> Enum.map(&String.to_integer/1)
+
+        if Enum.empty?(points), do: 0, else: Enum.sum(points) / length(points)
+      end)
 
     {:reply, topic_average, topics}
   end
