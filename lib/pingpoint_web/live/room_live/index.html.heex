@@ -7,6 +7,24 @@
   </:actions>
 </.header>
 
+<.modal :if={!@username} id="set-user-modal" show>
+  <h4 class="mb-8">What should we call you?</h4>
+  <.simple_form
+    action={~p"/set_user"}
+    autocomplete="off"
+    class="flex justify-between items-center gap-8"
+    for={@user_form}
+    id="user-form"
+  >
+    <div class="w-full">
+      <.input id="user-input" field={@user_form[:username]} label="Name" />
+    </div>
+    <:actions>
+      <.button class="bg-base-200">Submit</.button>
+    </:actions>
+  </.simple_form>
+</.modal>
+
 <.table
   id="rooms"
   rows={@streams.rooms}

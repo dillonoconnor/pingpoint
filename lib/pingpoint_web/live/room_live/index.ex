@@ -4,9 +4,16 @@ defmodule PingpointWeb.RoomLive.Index do
   alias Pingpoint.Spaces
   alias Pingpoint.Spaces.Room
 
+  @user_form_default to_form(%{"username" => nil})
+
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, stream(socket, :rooms, Spaces.list_rooms())}
+  def mount(_params, session, socket) do
+    socket =
+      socket
+      |> assign(user_form: @user_form_default, username: session["username"])
+      |> stream(:rooms, Spaces.list_rooms())
+
+    {:ok, socket}
   end
 
   @impl true

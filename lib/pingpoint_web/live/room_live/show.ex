@@ -9,13 +9,11 @@ defmodule PingpointWeb.RoomLive.Show do
   @pubsub_name Pingpoint.PubSub
   @point_form_default to_form(%{})
   @topic_form_default to_form(%{"subject" => ""})
-  @user_form_default to_form(%{"username" => nil})
 
   @impl true
-  def mount(%{"id" => id}, session, socket) do
+  def mount(%{"id" => id}, %{"username" => username}, socket) do
     room_id = "topic_server_#{id}"
     topic_id = "users:topic_#{id}"
-    username = session["username"]
 
     if connected?(socket) do
       Presence.track(self(), topic_id, username, %{
@@ -46,12 +44,16 @@ defmodule PingpointWeb.RoomLive.Show do
         room_id: room_id,
         point_form: @point_form_default,
         topic_form: @topic_form_default,
-        user_form: @user_form_default,
-        username: username,
         presences: presences
       )
 
     {:ok, socket}
+  end
+
+  @impl true
+  def mount(_, _, socket) do
+    socket = put_flash(socket, :error, "You must have a username to enter a room")
+    {:ok, redirect(socket, to: ~p"/rooms")}
   end
 
   @impl true

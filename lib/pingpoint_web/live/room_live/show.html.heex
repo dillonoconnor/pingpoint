@@ -3,28 +3,12 @@
   <:subtitle>Add a topic to get started.</:subtitle>
 </.header>
 
-<.modal :if={!@username} id="set-user-modal" show>
-  <.simple_form
-    action={~p"/set_user"}
-    autocomplete="off"
-    class="mt-4"
-    for={@user_form}
-    id="user-form"
-  >
-    <div class="w-full">
-      <.input id="user-input" field={@user_form[:username]} label="Name" />
-    </div>
-    <:actions>
-      <.button class="w-full mt-4">Submit</.button>
-    </:actions>
-  </.simple_form>
-</.modal>
 <section class="flex justify-between gap-20">
-  <article>
+  <article class="w-1/6">
     <h3 class="my-8">In the room:</h3>
-    <ul class="flex">
-      <li :for={{user, meta} <- @presences} class="grow">
-        <div class="flex justify-evenly items-center bg-neutral p-2 rounded-md border border-info text-center">
+    <ul class="flex flex-col gap-2">
+      <li :for={{user, meta} <- @presences}>
+        <div class="flex justify-between items-center bg-neutral py-2 px-4 rounded-md border border-info text-center">
           <%= user %>
           <.icon name={if meta.thinking, do: "hero-ellipsis-horizontal", else: "hero-check"} />
         </div>
