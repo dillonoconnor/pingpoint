@@ -12,22 +12,21 @@ defmodule PingpointWeb.RoomLive.Show do
 
   @impl true
   def mount(%{"id" => id}, %{"username" => username}, socket) do
-    room_id = "topic_server_#{id}"
+    room_id = "topics:topic_#{id}"
     topic_id = "users:topic_#{id}"
 
     if connected?(socket) do
       Presence.track(self(), topic_id, username, %{
-        thinking: true
+        thinking: Presence.get_by_key(topic_id, username)[:thinking] || true
       })
 
+      PubSub.subscribe(@pubsub_name, topic_id)
       PubSub.subscribe(@pubsub_name, room_id)
     end
 
     presences =
       Presence.list(topic_id)
-      |> Enum.into(%{}, fn {user, %{metas: [meta | _]}} ->
-        {user, meta}
-      end)
+      |> uniq_presence_map()
 
     socket =
       case start_topic_server(id) do
@@ -42,8 +41,10 @@ defmodule PingpointWeb.RoomLive.Show do
       socket
       |> assign(
         room_id: room_id,
+        topic_id: topic_id,
         point_form: @point_form_default,
         topic_form: @topic_form_default,
+        username: username,
         presences: presences
       )
 
@@ -70,7 +71,8 @@ defmodule PingpointWeb.RoomLive.Show do
       TopicServer.update_topic(socket.assigns.room_id, {topic_id, socket.assigns.username, point})
 
     PubSub.broadcast(@pubsub_name, socket.assigns.room_id, {:topic_updated, topic})
-    {:noreply, socket}
+
+    {:noreply, update_presence(socket, :thinking, false)}
   end
 
   @impl true
@@ -82,8 +84,11 @@ defmodule PingpointWeb.RoomLive.Show do
   def handle_event("save_topic", topic, socket) do
     room_id = socket.assigns.room_id
     topic = normalize_topic(topic, room_id)
+
     TopicServer.add_topic(room_id, topic)
     PubSub.broadcast(@pubsub_name, room_id, {:topic_created, topic})
+    PubSub.broadcast(@pubsub_name, socket.assigns.topic_id, :reset_thinking)
+
     {:noreply, assign(socket, :topic_form, @topic_form_default)}
   end
 
@@ -92,6 +97,24 @@ defmodule PingpointWeb.RoomLive.Show do
     TopicServer.remove_topic(socket.assigns.room_id, topic_id)
     PubSub.broadcast(@pubsub_name, socket.assigns.room_id, {:topic_deleted, topic_id})
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(%{event: "presence_diff", payload: payload}, socket) do
+    IO.inspect(payload, label: "payload")
+
+    socket =
+      socket
+      |> remove_presences(payload.leaves)
+      |> add_presences(payload.joins)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(:reset_thinking, socket) do
+    IO.puts("here!!11")
+    {:noreply, update_presence(socket, :thinking, true)}
   end
 
   @impl true
@@ -126,8 +149,31 @@ defmodule PingpointWeb.RoomLive.Show do
   defp start_topic_server(id) do
     DynamicSupervisor.start_child(
       Pingpoint.DynamicSupervisor,
-      {TopicServer, [[], name: "topic_server_#{id}"]}
+      {TopicServer, [[], name: "topics:topic_#{id}"]}
     )
+  end
+
+  defp remove_presences(socket, leaves) do
+    presences = Map.drop(socket.assigns.presences, Map.keys(leaves))
+    assign(socket, :presences, presences)
+  end
+
+  defp add_presences(socket, joins) do
+    presences = Map.merge(socket.assigns.presences, uniq_presence_map(joins))
+    assign(socket, :presences, presences)
+  end
+
+  defp update_presence(socket, key, value) do
+    username = socket.assigns.username
+    topic_id = socket.assigns.topic_id
+
+    Presence.get_by_key(topic_id, username).metas
+    |> hd()
+    |> then(fn meta ->
+      Presence.update(self(), topic_id, username, %{meta | key => value})
+    end)
+
+    socket
   end
 
   defp normalize_topic(params, room_id) do
@@ -141,5 +187,11 @@ defmodule PingpointWeb.RoomLive.Show do
       current: true,
       average: nil
     })
+  end
+
+  defp uniq_presence_map(presences) do
+    Enum.into(presences, %{}, fn {user, %{metas: [meta | _]}} ->
+      {user, meta}
+    end)
   end
 end

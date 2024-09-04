@@ -9,7 +9,14 @@
     <ul class="flex flex-col gap-2">
       <li :for={{user, meta} <- @presences}>
         <div class="flex justify-between items-center bg-neutral py-2 px-4 rounded-md border border-info text-center">
-          <%= user %>
+          <span class="flex items-center gap-2">
+            <div class="avatar">
+              <div class="rounded h-6 w-6">
+                <img src="https://img.daisyui.com/images/profile/demo/5@94.webp" />
+              </div>
+            </div>
+            <%= user %>
+          </span>
           <.icon name={if meta.thinking, do: "hero-ellipsis-horizontal", else: "hero-check"} />
         </div>
       </li>
@@ -43,7 +50,6 @@
       <thead>
         <tr>
           <th class="text-center">Topic</th>
-          <th class="pl-0.5">User</th>
           <th>Title</th>
           <th>Points</th>
           <th>Average</th>
@@ -52,16 +58,9 @@
       <tbody id="topics" phx-update="stream">
         <tr :for={{id, topic} <- @streams.topics} class="first:bg-base-200 first:rounded" id={id}>
           <td class="text-center"><%= topic.row_number %></td>
-          <td class="avatar pl-0">
-            <div class="mask mask-squircle h-12 w-12">
-              <img src="https://img.daisyui.com/images/profile/demo/5@94.webp" />
-            </div>
-          </td>
+          <td><%= topic[:subject] %></td>
           <td>
-            <%= topic[:subject] %>
-          </td>
-          <td>
-            <.simple_form class="flex gap-4" for={@point_form} phx-change="save_point">
+            <.simple_form class="flex gap-2" for={@point_form} phx-change="save_point">
               <label :for={point_value <- ~w(1 2 3 5 8)} class="label gap-2 cursor-pointer">
                 <span class="label-text"><%= point_value %></span>
                 <input type="hidden" name="topic_id" value={id} />
