@@ -18,8 +18,9 @@ defmodule Pingpoint.TopicServer do
 
     cond do
       topic_count(name) >= 1 ->
-        prev_topic_id = get_topics(name) |> hd() |> Map.get(:id)
-        average = topic_average(name, prev_topic_id)
+        topics = get_topics(name)
+        prev_topic_id = topics |> hd() |> Map.get(:id)
+        average = topic_average(prev_topic_id, topics)
         GenServer.cast(topic_name, {:add_topic, topic, average})
 
       true ->
@@ -37,10 +38,6 @@ defmodule Pingpoint.TopicServer do
 
   def topic_count(name) do
     GenServer.call(String.to_atom(name), :topic_count)
-  end
-
-  def topic_average(name, topic_id) do
-    GenServer.call(String.to_atom(name), {:topic_average, topic_id})
   end
 
   @impl true
@@ -75,14 +72,14 @@ defmodule Pingpoint.TopicServer do
   end
 
   @impl true
-  def handle_call({:update_topic, {dom_id, username, point}}, _from, topics) do
+  def handle_call({:update_topic, {dom_id, username, point, user_count}}, _from, topics) do
     topic_id = trimmed_dom_id(dom_id)
 
     updated_topic =
       find_topic(topic_id, topics)
       |> then(fn topic ->
-        updated_points = Map.put(topic.points, username, point)
-        %{topic | points: updated_points}
+        points = Map.put(topic.points, username, point)
+        %{topic | points: points}
       end)
 
     updated_topics =
@@ -91,25 +88,18 @@ defmodule Pingpoint.TopicServer do
         topic -> topic
       end)
 
-    {:reply, updated_topic, updated_topics}
-  end
+    topic_completed = topic_complete?(topic_id, updated_topics, user_count)
 
-  @impl true
-  def handle_call({:topic_average, topic_id}, _from, topics) do
-    IO.inspect(topic_id, label: "the id")
+    updated_topic =
+      if topic_completed do
+        average = topic_average(topic_id, updated_topics)
+        %{updated_topic | average: average}
+      else
+        updated_topic
+      end
 
-    topic_average =
-      find_topic(topic_id, topics)
-      |> then(fn topic ->
-        points =
-          topic.points
-          |> Map.values()
-          |> Enum.map(&String.to_integer/1)
-
-        if Enum.empty?(points), do: 0, else: Enum.sum(points) / length(points)
-      end)
-
-    {:reply, topic_average, topics}
+    status = if topic_completed, do: :complete, else: :pending
+    {:reply, {status, updated_topic}, updated_topics}
   end
 
   @impl true
@@ -123,5 +113,28 @@ defmodule Pingpoint.TopicServer do
 
   defp trimmed_dom_id(topic_id) do
     String.replace(topic_id, "topics-", "")
+  end
+
+  defp topic_average(topic_id, topics) do
+    find_topic(topic_id, topics)
+    |> then(fn topic ->
+      points =
+        topic.points
+        |> Map.values()
+        |> Enum.map(&String.to_integer/1)
+
+      if Enum.empty?(points), do: 0, else: Enum.sum(points) / length(points)
+    end)
+  end
+
+  defp topic_complete?(topic_id, topics, user_count) do
+    point_count =
+      find_topic(topic_id, topics)
+      |> then(fn topic ->
+        Map.keys(topic.points)
+        |> length()
+      end)
+
+    point_count == user_count
   end
 end

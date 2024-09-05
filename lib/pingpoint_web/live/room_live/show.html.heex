@@ -37,12 +37,11 @@
           autofocus="on"
           field={@topic_form[:subject]}
           label="Topic"
-          phx-debounce="1000"
         />
       </div>
       <:actions>
         <!-- won't overwrite with enter b/c element focus is not lost -->
-        <.button phx-click={JS.focus(to: "#topic-input")}>Add</.button>
+        <.button disabled={@status == :pending}>Add</.button>
       </:actions>
     </.simple_form>
 
@@ -56,8 +55,8 @@
         </tr>
       </thead>
       <tbody id="topics" phx-update="stream">
-        <tr :for={{id, topic} <- @streams.topics} class="first:bg-base-200 first:rounded" id={id}>
-          <td class="text-center"><%= topic.row_number %></td>
+        <tr :for={{id, topic} <- @streams.topics} class="first:bg-base-300" id={id}>
+          <td class="text-center rounded-tl-lg rounded-bl-lg"><%= topic.row_number %></td>
           <td><%= topic[:subject] %></td>
           <td>
             <.simple_form class="flex gap-2" for={@point_form} phx-change="save_point">
@@ -78,7 +77,7 @@
           <td>
             <%= topic.average %>
           </td>
-          <td>
+          <td class="last:rounded-tr-lg rounded-br-lg">
             <.button class="btn-square btn-ghost" phx-click="remove_topic" phx-value-topic-id={id}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"

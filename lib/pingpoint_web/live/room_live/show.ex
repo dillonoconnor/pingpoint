@@ -45,7 +45,8 @@ defmodule PingpointWeb.RoomLive.Show do
         point_form: @point_form_default,
         topic_form: @topic_form_default,
         username: username,
-        presences: presences
+        presences: presences,
+        status: :complete
       )
 
     {:ok, socket}
@@ -67,10 +68,18 @@ defmodule PingpointWeb.RoomLive.Show do
 
   @impl true
   def handle_event("save_point", %{"topic_id" => topic_id, "point" => point}, socket) do
-    topic =
-      TopicServer.update_topic(socket.assigns.room_id, {topic_id, socket.assigns.username, point})
+    room_id = socket.assigns.room_id
+    topic_server = socket.assigns.topic_id
 
-    PubSub.broadcast(@pubsub_name, socket.assigns.room_id, {:topic_updated, topic})
+    user_count = Presence.list(topic_server) |> map_size()
+
+    {status, topic} =
+      TopicServer.update_topic(room_id, {topic_id, socket.assigns.username, point, user_count})
+
+    PubSub.broadcast(@pubsub_name, room_id, {:topic_updated, topic})
+
+    if status == :complete,
+      do: PubSub.broadcast(@pubsub_name, topic_server, {:set_status, status})
 
     {:noreply, update_presence(socket, :thinking, false)}
   end
@@ -83,11 +92,13 @@ defmodule PingpointWeb.RoomLive.Show do
   @impl true
   def handle_event("save_topic", topic, socket) do
     room_id = socket.assigns.room_id
+    topic_server = socket.assigns.topic_id
     topic = normalize_topic(topic, room_id)
 
     TopicServer.add_topic(room_id, topic)
     PubSub.broadcast(@pubsub_name, room_id, {:topic_created, topic})
-    PubSub.broadcast(@pubsub_name, socket.assigns.topic_id, :reset_thinking)
+    PubSub.broadcast(@pubsub_name, topic_server, :reset_thinking)
+    PubSub.broadcast(@pubsub_name, topic_server, {:set_status, :pending})
 
     {:noreply, assign(socket, :topic_form, @topic_form_default)}
   end
@@ -113,8 +124,12 @@ defmodule PingpointWeb.RoomLive.Show do
 
   @impl true
   def handle_info(:reset_thinking, socket) do
-    IO.puts("here!!11")
     {:noreply, update_presence(socket, :thinking, true)}
+  end
+
+  @impl true
+  def handle_info({:set_status, status}, socket) do
+    {:noreply, assign(socket, status: status)}
   end
 
   @impl true
@@ -133,9 +148,7 @@ defmodule PingpointWeb.RoomLive.Show do
 
   @impl true
   def handle_info({:topic_updated, topic}, socket) do
-    socket = stream_insert(socket, :topics, topic, at: 0)
-
-    {:noreply, socket}
+    {:noreply, stream_insert(socket, :topics, topic, at: 0)}
   end
 
   @impl true
