@@ -11,13 +11,14 @@ defmodule PingpointWeb.RoomLive.Show do
   @topic_form_default to_form(%{"subject" => ""})
 
   @impl true
-  def mount(%{"id" => id}, %{"username" => username}, socket) do
+  def mount(%{"id" => id}, %{"username" => username, "avatar" => avatar_suffix}, socket) do
     room_id = "topics:topic_#{id}"
     topic_id = "users:topic_#{id}"
 
     if connected?(socket) do
       Presence.track(self(), topic_id, username, %{
-        thinking: Presence.get_by_key(topic_id, username)[:thinking] || true
+        thinking: Presence.get_by_key(topic_id, username)[:thinking] || true,
+        avatar: "avatartion#{avatar_suffix}"
       })
 
       PubSub.subscribe(@pubsub_name, topic_id)

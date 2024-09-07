@@ -51,4 +51,14 @@ defmodule PingpointWeb.RoomLive.Index do
 
     {:noreply, stream_delete(socket, :rooms, room)}
   end
+
+  def avatar_background_color(suffix) do
+    case suffix do
+      "f1" -> "primary"
+      "f2" -> "secondary"
+      "m1" -> "accent"
+      "m2" -> "info"
+      _ -> "warning"
+    end
+  end
 end

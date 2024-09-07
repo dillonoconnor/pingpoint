@@ -202,14 +202,15 @@ defmodule PingpointWeb.CoreComponents do
     doc: "the arbitrary HTML attributes to apply to the form tag"
 
   slot :inner_block, required: true
+  slot :inputs, doc: "the slot for form inputs"
   slot :actions, doc: "the slot for form actions, such as a submit button"
 
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} class={[@class]} for={@for} as={@as} {@rest}>
       <%= render_slot(@inner_block, f) %>
-      <div :for={action <- @actions}>
-        <%= render_slot(action, f) %>
+      <div :for={input <- @inputs} class="w-full flex items-center justify-between gap-8">
+        <%= render_slot(input, f) %>
       </div>
     </.form>
     """
