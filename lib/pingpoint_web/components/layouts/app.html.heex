@@ -1,5 +1,5 @@
 <header class="px-4 sm:px-6 lg:px-8">
-  <div class="flex items-center justify-between border-b border-zinc-100 py-3">
+  <div class="flex items-center justify-between sm:py-6 lg:py-8">
     <div class="flex items-center gap-4">
       <a href={~p"/rooms"}>
         <h1
@@ -10,25 +10,9 @@
         </h1>
       </a>
     </div>
-    <div class="flex items-center gap-4 font-semibold leading-6">
-      <!-- <a href="https://twitter.com/elixirphoenix" class="hover:text-zinc-200"> -->
-        <!-- @elixirphoenix -->
-      <!-- </a> -->
-      <!-- <a href="https://github.com/phoenixframework/phoenix" class="hover:text-zinc-200"> -->
-        <!-- GitHub -->
-      <!-- </a> -->
-      <!-- <a -->
-        <!-- href="https://hexdocs.pm/phoenix/overview.html" -->
-        <!-- class="rounded-lg bg-neutral text-white px-2 py-1" -->
-      <!-- > -->
-        <!-- Get Started <span aria-hidden="true">&rarr;</span> -->
-      <!-- </a> -->
-    </div>
   </div>
 </header>
-<main class="px-4 py-20 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-4xl">
-    <.flash_group flash={@flash} />
-    <%= @inner_content %>
-  </div>
+<main class="h-full flex flex-col px-4 pb-10 sm:px-6 lg:px-8">
+  <.flash_group flash={@flash} />
+  <%= @inner_content %>
 </main>

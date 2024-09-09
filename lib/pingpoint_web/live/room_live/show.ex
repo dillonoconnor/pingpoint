@@ -47,7 +47,8 @@ defmodule PingpointWeb.RoomLive.Show do
         topic_form: @topic_form_default,
         username: username,
         presences: presences,
-        status: :complete
+        status: :complete,
+        rooms: Spaces.list_rooms()
       )
 
     {:ok, socket}

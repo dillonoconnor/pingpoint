@@ -52,7 +52,8 @@ defmodule PingpointWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {PingpointWeb.Layouts, :app}
+        layout: {PingpointWeb.Layouts, :app},
+        container: {:div, class: "flex flex-col h-screen overflow-hidden"}
 
       unquote(html_helpers())
     end

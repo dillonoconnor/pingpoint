@@ -1,17 +1,21 @@
-<.header>
-  <%= @room.name %>
-  <:subtitle>Add a topic to get started.</:subtitle>
-</.header>
-
-<section class="flex justify-between gap-20">
+<section class="grow mt-8 flex justify-between gap-16">
+  <nav class="h-100 rounded-lg w-48 bg-base-200">
+    <ul>
+      <li :for={room <- @rooms}>
+        <.button class="first:rounded-tl-lg first:rounded-tr-lg flex gap-4 items-center justify-start w-full rounded-none">
+          <.icon name="hero-server" class="" />
+          <%= room.name %>
+        </.button>
+      </li>
+    </ul>
+  </nav>
   <article class="w-1/6">
-    <h3 class="my-8">In the room:</h3>
     <ul class="flex flex-col gap-2">
       <li :for={{user, meta} <- @presences}>
-        <div class="flex justify-between items-center bg-neutral py-2 px-4 rounded-md border border-info text-center">
+        <div class="flex justify-between items-center bg-neutral py-2 px-4 rounded-lg border border-info text-center">
           <span class="flex items-center gap-2">
             <div class="avatar">
-              <div class="rounded h-6 w-6">
+              <div class="h-6 w-6">
                 <img src={"/images/#{meta.avatar}.png"} />
               </div>
             </div>
@@ -24,7 +28,7 @@
   </article>
   <article class="grow">
     <.simple_form
-      class="my-8 flex justify-between gap-8"
+      class="mb-8 flex justify-between gap-8"
       for={@topic_form}
       phx-change="validate_topic"
       phx-submit="save_topic"
@@ -98,7 +102,6 @@
         </tr>
       </tbody>
     </table>
-    <.back navigate={~p"/rooms"}>Back to rooms</.back>
   </article>
 </section>
 
