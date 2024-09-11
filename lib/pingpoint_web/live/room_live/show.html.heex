@@ -1,10 +1,39 @@
+<.modal id="create-room-modal">
+  <.simple_form
+    autocomplete="off"
+    class="flex flex-col justify-between items-center gap-8"
+    for={@create_room_form}
+    phx-submit="save_room"
+  >
+    <:inputs>
+      <div class="w-full">
+        <.input field={@create_room_form[:name]} label="Name" />
+      </div>
+      <.button class="bg-base-200">Submit</.button>
+    </:inputs>
+  </.simple_form>
+</.modal>
+
 <section class="grow mt-8 flex justify-between gap-16">
   <nav class="h-100 rounded-lg w-48 bg-base-200">
-    <ul>
-      <li :for={room <- @rooms}>
-        <.button class="first:rounded-tl-lg first:rounded-tr-lg flex gap-4 items-center justify-start w-full rounded-none">
-          <.icon name="hero-server" class="" />
-          <%= room.name %>
+    <ul phx-update="stream" id="rooms-nav">
+      <li>
+        <.button
+          class="flex gap-4 items-center justify-start bg-neutral-content text-primary-content hover:bg-gray-300 rounded-tl-lg rounded-tr-lg rounded-bl-none rounded-br-none w-full"
+          phx-click={show_modal("create-room-modal")}
+        >
+          <.icon name="hero-plus" /> Add Room
+        </.button>
+      </li>
+      <li :for={{id, room} <- @streams.rooms} id={id} class="flex">
+        <.button class="flex grow gap-4 items-center justify-between rounded-none first:border-t-none border-t-base-200 hover:border-t-base-200 peer">
+          <div class="flex gap-4 items-center">
+            <.icon name="hero-server" />
+            <%= room.name %>
+          </div>
+        </.button>
+        <.button class="group rounded-none hover:border-t-base-200 border-t-base-200 peer-hover:bg-opacity-60 peer-hover:border-x-transparent">
+          <.icon name="hero-trash w-5 h-5 opacity-30 group-hover:bg-secondary group-hover:opacity-100" />
         </.button>
       </li>
     </ul>

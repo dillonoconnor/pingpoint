@@ -5,8 +5,10 @@ defmodule PingpointWeb.RoomLive.Show do
   alias Pingpoint.Spaces
   alias Pingpoint.TopicServer
   alias PingpointWeb.Presence
+  alias Pingpoint.Spaces
 
   @pubsub_name Pingpoint.PubSub
+  @create_room_form_default to_form(%{"name" => ""})
   @point_form_default to_form(%{})
   @topic_form_default to_form(%{"subject" => ""})
 
@@ -38,17 +40,19 @@ defmodule PingpointWeb.RoomLive.Show do
           socket |> stream(:topics, [])
       end
 
+    socket = stream(socket, :rooms, Spaces.list_rooms())
+
     socket =
       socket
       |> assign(
         room_id: room_id,
         topic_id: topic_id,
+        create_room_form: @create_room_form_default,
         point_form: @point_form_default,
         topic_form: @topic_form_default,
         username: username,
         presences: presences,
-        status: :complete,
-        rooms: Spaces.list_rooms()
+        status: :complete
       )
 
     {:ok, socket}
@@ -110,6 +114,13 @@ defmodule PingpointWeb.RoomLive.Show do
     TopicServer.remove_topic(socket.assigns.room_id, topic_id)
     PubSub.broadcast(@pubsub_name, socket.assigns.room_id, {:topic_deleted, topic_id})
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("save_room", room_params, socket) do
+    {:ok, room} = Spaces.create_room(room_params)
+
+    {:noreply, stream_insert(socket, :rooms, room)}
   end
 
   @impl true
