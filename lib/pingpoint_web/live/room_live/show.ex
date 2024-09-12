@@ -124,6 +124,13 @@ defmodule PingpointWeb.RoomLive.Show do
   end
 
   @impl true
+  def handle_event("remove_room", %{"room" => room_id}, socket) do
+    room = Spaces.get_room!(room_id)
+    {:ok, room} = Spaces.delete_room(room)
+    {:noreply, stream_delete(socket, :rooms, room)}
+  end
+
+  @impl true
   def handle_info(%{event: "presence_diff", payload: payload}, socket) do
     IO.inspect(payload, label: "payload")
 

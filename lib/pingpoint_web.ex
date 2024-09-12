@@ -55,6 +55,7 @@ defmodule PingpointWeb do
         layout: {PingpointWeb.Layouts, :app},
         container: {:div, class: "flex flex-col h-screen overflow-hidden"}
 
+      import PingpointWeb.CustomComponents
       unquote(html_helpers())
     end
   end
