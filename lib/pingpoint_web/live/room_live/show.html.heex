@@ -16,7 +16,7 @@
 </.modal>
 
 <section class="grow mt-8 flex justify-between gap-16">
-  <nav class="h-100 rounded-lg w-48 bg-base-200">
+  <nav class="w-48">
     <ul>
       <li>
         <.button
@@ -27,8 +27,12 @@
         </.button>
       </li>
       <div phx-update="stream" id="rooms-nav">
-        <li :for={{id, room} <- @streams.rooms} id={id} class="flex">
-          <.room_button name={room.name} room_id={room.id} />
+        <li
+          :for={{id, room} <- @streams.rooms}
+          id={id}
+          class="flex last:rounded-bl-lg last:rounded-br-lg overflow-hidden"
+        >
+          <.room_button active={room.id == @params_room_id} name={room.name} room_id={room.id} />
         </li>
       </div>
     </ul>

@@ -46,6 +46,7 @@ defmodule PingpointWeb.RoomLive.Show do
     socket =
       socket
       |> assign(
+        params_room_id: String.to_integer(id),
         room_id: room_id,
         topic_id: topic_id,
         create_room_form: @create_room_form_default,
