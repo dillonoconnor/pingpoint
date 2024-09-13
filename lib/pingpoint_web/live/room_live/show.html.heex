@@ -3,11 +3,12 @@
     autocomplete="off"
     class="flex flex-col justify-between items-center gap-8"
     for={@create_room_form}
+    phx-change="validate_room"
     phx-submit="save_room"
   >
     <:inputs>
       <div class="w-full">
-        <.input field={@create_room_form[:name]} label="Name" />
+        <.input field={@create_room_form[:name]} label="Name" phx-debounce="500" />
       </div>
       <.button class="bg-base-200">Submit</.button>
     </:inputs>

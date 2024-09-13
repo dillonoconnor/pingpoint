@@ -3,12 +3,13 @@ defmodule PingpointWeb.RoomLive.Show do
 
   alias Phoenix.PubSub
   alias Pingpoint.Spaces
+  alias Pingpoint.Spaces.Room
   alias Pingpoint.TopicServer
   alias PingpointWeb.Presence
   alias Pingpoint.Spaces
 
   @pubsub_name Pingpoint.PubSub
-  @create_room_form_default to_form(%{"name" => ""})
+  @create_room_form_default Spaces.change_room(%Room{}) |> to_form()
   @point_form_default to_form(%{})
   @topic_form_default to_form(%{"subject" => ""})
 
@@ -117,10 +118,25 @@ defmodule PingpointWeb.RoomLive.Show do
   end
 
   @impl true
-  def handle_event("save_room", room_params, socket) do
+  def handle_event("validate_room", %{"room" => room_params}, socket) do
+    changeset =
+      %Room{}
+      |> Spaces.change_room(room_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :create_room_form, to_form(changeset))}
+  end
+
+  @impl true
+  def handle_event("save_room", %{"room" => room_params}, socket) do
     {:ok, room} = Spaces.create_room(room_params)
 
-    {:noreply, stream_insert(socket, :rooms, room)}
+    socket =
+      socket
+      |> stream_insert(:rooms, room)
+      |> push_event("hide_element", %{"id" => "create-room-modal"})
+
+    {:noreply, socket}
   end
 
   @impl true

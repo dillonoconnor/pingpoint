@@ -42,3 +42,9 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+window.addEventListener("phx:hide_element", (e) => {
+  el = document.querySelector(`#${e.detail.id}`);
+  const jsCommand = el.getAttribute("phx-remove");
+  liveSocket.execJS(el, jsCommand);
+});
+
