@@ -1,3 +1,38 @@
+<.modal :if={!@username} id="set-user-modal" allow_cancel={false} show>
+  <.simple_form
+    action={~p"/set_user"}
+    autocomplete="off"
+    class="flex flex-col justify-between items-center gap-8"
+    for={@user_form}
+    id="user-form"
+  >
+    <h4 class="w-full text-left">Avatar</h4>
+    <div class="w-3/4 flex self-start justify-between">
+      <% image_suffixes = ~w(f1 f2 m1 m2) %>
+      <div :for={suffix <- image_suffixes} class="avatar outline-none">
+        <input
+          id={"avatar-input-#{suffix}"}
+          class="absolute peer opacity-0"
+          name="avatar"
+          type="radio"
+          value={suffix}
+        />
+        <div class="w-24 hover:scale-110 outline outline-neutral-content hover:bg-info rounded transition ease-in-out peer-checked:bg-info peer-checked:scale-110">
+          <label for={"avatar-input-#{suffix}"} class="cursor-pointer">
+            <img src={"/images/avatartion#{suffix}.png"} alt={suffix} />
+          </label>
+        </div>
+      </div>
+    </div>
+    <:inputs>
+      <div class="w-full">
+        <.input id="user-input" field={@user_form[:username]} label="Name" />
+      </div>
+      <.button class="bg-base-200">Submit</.button>
+    </:inputs>
+  </.simple_form>
+</.modal>
+
 <.modal id="create-room-modal">
   <.simple_form
     autocomplete="off"
@@ -47,9 +82,12 @@
                 <img src={"/images/#{meta.avatar}.png"} />
               </div>
             </div>
-            <%= user %>
+            <span class="line-clamp-1 pr-2"><%= user %></span>
           </span>
-          <.icon name={if meta.thinking, do: "hero-ellipsis-horizontal", else: "hero-check"} />
+          <.icon
+            class="shrink-0"
+            name={if meta.thinking, do: "hero-ellipsis-horizontal", else: "hero-check"}
+          />
         </div>
       </li>
     </ul>
@@ -93,7 +131,15 @@
           <td>
             <.simple_form class="flex gap-2" for={@point_form} phx-change="save_point">
               <label :for={point_value <- ~w(1 2 3 5 8)} class="label gap-2 cursor-pointer">
-                <span class="label-text"><%= point_value %></span>
+                <div class="indicator px-2">
+                  <span class="label-text"><%= point_value %></span>
+                  <div
+                    class="tooltip tooltip-top indicator-item"
+                    data-tip={point_tooltip(point_value)}
+                  >
+                    <.icon name="hero-information-circle" class="h-4 w-4" />
+                  </div>
+                </div>
                 <input type="hidden" name="topic_id" value={id} />
                 <input
                   disabled={!topic.current}

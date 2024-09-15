@@ -39,6 +39,7 @@ defmodule PingpointWeb.CoreComponents do
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+  attr :allow_cancel, :boolean, default: true
   slot :inner_block, required: true
 
   def modal(assigns) do
@@ -67,12 +68,12 @@ defmodule PingpointWeb.CoreComponents do
           <div class="w-full max-w-3xl p-4 sm:p-6 lg:py-8">
             <.focus_wrap
               id={"#{@id}-container"}
-              phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
+              phx-window-keydown={@allow_cancel && JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
-              phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+              phx-click-away={@allow_cancel && JS.exec("data-cancel", to: "##{@id}")}
               class="relative hidden rounded-2xl bg-neutral p-14 shadow-lg transition"
             >
-              <div class="absolute top-6 right-5">
+              <div :if={@allow_cancel} class="absolute top-6 right-5">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
@@ -384,7 +385,7 @@ defmodule PingpointWeb.CoreComponents do
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
             @class,
-            "border-none focus-within:ring-0",
+            "border-none focus-within:ring-0 w-full",
             @errors != [] && "border-rose-400 focus:border-rose-400"
           ]}
           {@rest}

@@ -20,12 +20,11 @@ defmodule PingpointWeb.Router do
     get "/", PageController, :home
     post "/set_user", SessionController, :set_user
 
-    live "/rooms", RoomLive.Index, :index
-    live "/rooms/new", RoomLive.Index, :new
+    live "/retro", RetroLive.Show
+    live "/rooms", RoomLive.Show, :show
     live "/rooms/:id/edit", RoomLive.Index, :edit
 
     live "/rooms/:id", RoomLive.Show, :show
-    live "/rooms/:id/show/edit", RoomLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

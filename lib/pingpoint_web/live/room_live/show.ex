@@ -12,11 +12,15 @@ defmodule PingpointWeb.RoomLive.Show do
   @create_room_form_default Spaces.change_room(%Room{}) |> to_form()
   @point_form_default to_form(%{})
   @topic_form_default to_form(%{"subject" => ""})
+  @user_form_default to_form(%{"username" => nil})
 
   @impl true
-  def mount(%{"id" => id}, %{"username" => username, "avatar" => avatar_suffix}, socket) do
+  def mount(params, session, socket) do
+    id = params["id"] || "1"
     room_id = "topics:topic_#{id}"
     topic_id = "users:topic_#{id}"
+    username = session["username"]
+    avatar_suffix = session["avatar"]
 
     if connected?(socket) do
       Presence.track(self(), topic_id, username, %{
@@ -52,6 +56,7 @@ defmodule PingpointWeb.RoomLive.Show do
         create_room_form: @create_room_form_default,
         point_form: @point_form_default,
         topic_form: @topic_form_default,
+        user_form: @user_form_default,
         username: username,
         presences: presences,
         status: :complete
@@ -61,17 +66,8 @@ defmodule PingpointWeb.RoomLive.Show do
   end
 
   @impl true
-  def mount(_, _, socket) do
-    socket = put_flash(socket, :error, "You must have a username to enter a room")
-    {:ok, redirect(socket, to: ~p"/rooms")}
-  end
-
-  @impl true
-  def handle_params(%{"id" => id}, _, socket) do
-    {:noreply,
-     socket
-     |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:room, Spaces.get_room!(id))}
+  def handle_params(_, _, socket) do
+    {:noreply, assign(socket, :page_title, page_title(socket.assigns.live_action))}
   end
 
   @impl true
@@ -191,6 +187,17 @@ defmodule PingpointWeb.RoomLive.Show do
   @impl true
   def handle_info({:topic_deleted, topic_id}, socket) do
     {:noreply, stream_delete_by_dom_id(socket, :topics, topic_id)}
+  end
+
+  def point_tooltip(point) do
+    case point do
+      "1" -> "half a day"
+      "2" -> "one day"
+      "3" -> "a few days"
+      "5" -> "a week"
+      "8" -> "more than a week"
+      _ -> "?"
+    end
   end
 
   defp page_title(:show), do: "Show Room"

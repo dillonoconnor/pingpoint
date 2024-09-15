@@ -15,7 +15,7 @@ defmodule PingpointWeb.CustomComponents do
     <div class={[
       "border-t-2 border-t-base-200",
       "flex grow h-12",
-      unless(@active, do: "hover:bg-base-100 transition duration-100 ease-in"),
+      unless(@active, do: "hover:bg-base-300 transition duration-100 ease-in"),
       if(@active, do: "bg-base-300", else: "bg-neutral"),
       @class
     ]}>
