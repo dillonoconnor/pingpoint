@@ -79,7 +79,11 @@
           <span class="flex items-center gap-2">
             <div class="avatar">
               <div class="h-6 w-6">
-                <img src={"/images/#{meta.avatar}.png"} />
+                <%= if meta.avatar do %>
+                  <img src={"/images/#{meta.avatar}.png"} />
+                <% else %>
+                  <.icon name="hero-question-mark-circle" />
+                <% end %>
               </div>
             </div>
             <span class="line-clamp-1 pr-2"><%= user %></span>

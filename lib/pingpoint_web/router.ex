@@ -17,13 +17,10 @@ defmodule PingpointWeb.Router do
   scope "/", PingpointWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
     post "/set_user", SessionController, :set_user
 
+    live "/", RoomLive.Show, :show
     live "/retro", RetroLive.Show
-    live "/rooms", RoomLive.Show, :show
-    live "/rooms/:id/edit", RoomLive.Index, :edit
-
     live "/rooms/:id", RoomLive.Show, :show
   end
 

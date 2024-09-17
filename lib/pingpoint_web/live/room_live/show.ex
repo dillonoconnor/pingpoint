@@ -25,7 +25,7 @@ defmodule PingpointWeb.RoomLive.Show do
     if connected?(socket) do
       Presence.track(self(), topic_id, username, %{
         thinking: Presence.get_by_key(topic_id, username)[:thinking] || true,
-        avatar: "avatartion#{avatar_suffix}"
+        avatar: avatar_suffix && "avatartion#{avatar_suffix}"
       })
 
       PubSub.subscribe(@pubsub_name, topic_id)

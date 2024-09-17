@@ -1,7 +1,7 @@
 defmodule PingpointWeb.CustomComponents do
   use Phoenix.Component
 
-  alias Phoenix.LiveView.JS
+  # alias Phoenix.LiveView.JS
   import PingpointWeb.CoreComponents, only: [icon: 1]
 
   attr :active, :boolean, required: true
