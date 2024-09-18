@@ -1,14 +1,28 @@
 <header class="px-4 sm:px-6 lg:px-8">
   <div class="flex items-center justify-between sm:py-6 lg:py-8">
-    <div class="flex items-center gap-4">
+    <div class="flex items-end gap-4">
       <a href={~p"/rooms"}>
         <h1
-          class="text-2xl font-semibold"
+          class="text-2xl font-semibold mr-8"
           style="font-family: 'Inter', sans-serif; font-optical-sizing: auto"
         >
           Pingpoint
         </h1>
       </a>
+      <.link
+        navigate={~p"/"}
+        class="hover:text-info"
+        style="font-family: 'Inter', sans-serif; font-optical-sizing: auto"
+      >
+        Rooms
+      </.link>
+      <.link
+        navigate={~p"/retro"}
+        class="hover:text-info"
+        style="font-family: 'Inter', sans-serif; font-optical-sizing: auto"
+      >
+        Retro
+      </.link>
     </div>
   </div>
 </header>
