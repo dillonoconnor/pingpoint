@@ -1,12 +1,16 @@
 defmodule PingpointWeb.RetroLive.Show do
   use PingpointWeb, :live_view
 
+  alias Pingpoint.RetroAgent
+
   defmodule Comment do
     defstruct id: Ecto.UUID.generate(), content: nil, author: nil
   end
 
   @impl true
   def mount(_params, session, socket) do
+    {:ok, _pid} = RetroAgent.start_link(:ra)
+
     socket =
       socket
       |> assign(
@@ -15,9 +19,9 @@ defmodule PingpointWeb.RetroLive.Show do
         continue_doing_form: to_form(%{"continue_doing" => ""}),
         username: session["username"]
       )
-      |> stream(:start_doing, [])
-      |> stream(:stop_doing, [])
-      |> stream(:continue_doing, [])
+      |> stream(:start_doing, RetroAgent.get(:ra, "start_doing"))
+      |> stream(:stop_doing, RetroAgent.get(:ra, "stop_doing"))
+      |> stream(:continue_doing, RetroAgent.get(:ra, "continue_doing"))
 
     {:ok, socket}
   end
@@ -41,7 +45,7 @@ defmodule PingpointWeb.RetroLive.Show do
       >
         <% stringified_category = Atom.to_string(category) %>
         <div phx-update="stream" id={stringified_category <> "-comments"}>
-          <div :for={{id, comment} <- @streams[category]} class="mt-4 chat chat-start">
+          <div :for={{_id, comment} <- @streams[category]} class="mt-4 chat chat-start">
             <div class="chat-header">
               <%= comment.author %>
             </div>
@@ -64,16 +68,12 @@ defmodule PingpointWeb.RetroLive.Show do
   end
 
   @impl true
-  def handle_event(
-        "add_content",
-        %{"author" => author, "category" => category, "content" => content},
-        socket
-      ) do
-    {:noreply,
-     stream_insert(socket, String.to_existing_atom(category), %Comment{
-       author: author,
-       content: content
-     })}
+  def handle_event("add_content", params, socket) do
+    %{"author" => author, "category" => category, "content" => content} = params
+    comment = %Comment{author: author, content: content}
+    RetroAgent.put(:ra, category, comment)
+
+    {:noreply, stream_insert(socket, String.to_existing_atom(category), comment)}
   end
 
   defp category_icon(category) do
