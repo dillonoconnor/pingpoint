@@ -1,4 +1,6 @@
 defmodule Pingpoint.RetroAgent do
+  use Agent
+
   def start_link(name) do
     comments = %{"start_doing" => [], "stop_doing" => [], "continue_doing" => []}
 

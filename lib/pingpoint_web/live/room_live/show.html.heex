@@ -50,7 +50,7 @@
   </.simple_form>
 </.modal>
 
-<section class="grow mt-8 flex justify-between gap-16">
+<section class="grow mt-4 flex justify-between gap-8 max-w-screen-2xl">
   <nav class="w-48">
     <ul>
       <li>
@@ -72,30 +72,7 @@
       </div>
     </ul>
   </nav>
-  <article class="w-1/6">
-    <ul class="flex flex-col gap-2">
-      <li :for={{user, meta} <- @presences}>
-        <div class="flex justify-between items-center bg-neutral py-2 px-4 rounded-lg border border-info text-center">
-          <span class="flex items-center gap-2">
-            <div class="avatar">
-              <div class="h-6 w-6">
-                <%= if meta.avatar do %>
-                  <img src={"/images/#{meta.avatar}.png"} />
-                <% else %>
-                  <.icon name="hero-question-mark-circle" />
-                <% end %>
-              </div>
-            </div>
-            <span class="line-clamp-1 pr-2"><%= user %></span>
-          </span>
-          <.icon
-            class="shrink-0"
-            name={if meta.thinking, do: "hero-ellipsis-horizontal", else: "hero-check"}
-          />
-        </div>
-      </li>
-    </ul>
-  </article>
+  <.live_component module={PresenceTracker} id={:users} presence_payload={@presence_payload} />
   <article class="grow">
     <.simple_form
       class="mb-8 flex justify-between gap-8"
