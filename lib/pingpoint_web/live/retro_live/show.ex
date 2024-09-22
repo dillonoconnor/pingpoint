@@ -1,16 +1,20 @@
 defmodule PingpointWeb.RetroLive.Show do
   use PingpointWeb, :live_view
 
+  alias Phoenix.PubSub
   alias Pingpoint.RetroAgent
   alias PingpointWeb.PresenceTracker
 
   defmodule Comment do
-    defstruct id: Ecto.UUID.generate(), content: nil, author: nil
+    defstruct id: nil, content: nil, author: nil
   end
+
+  @pubsub_name Pingpoint.PubSub
 
   @impl true
   def mount(_params, session, socket) do
-    %{"avatar" => avatar_suffix, "username" => username} = session
+    avatar_suffix = session["avatar"]
+    username = session["username"]
 
     {:ok, _pid} =
       DynamicSupervisor.start_child(
@@ -33,9 +37,9 @@ defmodule PingpointWeb.RetroLive.Show do
         username: username,
         presence_payload: presence_payload
       )
-      |> stream(:start_doing, RetroAgent.get(:ra, "start_doing"))
-      |> stream(:stop_doing, RetroAgent.get(:ra, "stop_doing"))
-      |> stream(:continue_doing, RetroAgent.get(:ra, "continue_doing"))
+      |> stream(:start_doing, RetroAgent.get(:ra, "start_doing") |> Enum.reverse())
+      |> stream(:stop_doing, RetroAgent.get(:ra, "stop_doing") |> Enum.reverse())
+      |> stream(:continue_doing, RetroAgent.get(:ra, "continue_doing") |> Enum.reverse())
 
     {:ok, socket}
   end
@@ -54,15 +58,31 @@ defmodule PingpointWeb.RetroLive.Show do
           class="flex flex-col h-full p-4 bg-base-200 rounded-lg"
         >
           <% stringified_category = Atom.to_string(category) %>
-          <div phx-update="stream" id={stringified_category <> "-comments"}>
-            <.chat_bubble :for={{_id, comment} <- @streams[category]} comment={comment} />
+          <div
+            phx-update="stream"
+            id={stringified_category <> "-comments"}
+            class="grow h-0 overflow-y-auto"
+          >
+            <.chat_bubble :for={{id, comment} <- @streams[category]} id={id} comment={comment} />
           </div>
-          <.form for={assigns[category]} class="mt-auto w-full" phx-submit="add_content">
+          <.form
+            for={assigns[category]}
+            class="mt-4 w-full"
+            phx-change="validate_comment"
+            phx-submit="add_content"
+          >
             <label for={stringified_category} class="input input-bordered flex items-center gap-2">
               <.icon name={category_icon(category)} />
-              <input type="hidden" name="author" value={@username} />
-              <input type="hidden" name="category" value={stringified_category} />
-              <input id={stringified_category} type="text" class="grow" name="content" />
+              <input type="hidden" name="author" value={@username} autocomplete="off" />
+              <input type="hidden" name="category" value={stringified_category} autocomplete="off" />
+              <input
+                id={stringified_category}
+                type="text"
+                class="grow"
+                name="content"
+                autocomplete="off"
+                phx-debounce="500"
+              />
             </label>
           </.form>
         </div>
@@ -81,7 +101,7 @@ defmodule PingpointWeb.RetroLive.Show do
 
   def chat_bubble(assigns) do
     ~H"""
-    <div class="mt-4 chat chat-start">
+    <div id={@id} class="mt-4 chat chat-start">
       <div class="chat-header">
         <%= @comment.author %>
       </div>
@@ -93,11 +113,28 @@ defmodule PingpointWeb.RetroLive.Show do
   end
 
   @impl true
+  def handle_event(
+        "validate_comment",
+        %{"category" => category, "content" => content} = params,
+        socket
+      ) do
+    IO.inspect(params, label: "params")
+
+    {:noreply,
+     assign(socket, String.to_atom("#{category}_form"), to_form(%{category => content}))}
+  end
+
+  @impl true
   def handle_event("add_content", params, socket) do
     %{"author" => author, "category" => category, "content" => content} = params
-    comment = %Comment{author: author, content: content}
+    comment = %Comment{id: Ecto.UUID.generate(), author: author, content: content}
     RetroAgent.put(:ra, category, comment)
+    PubSub.broadcast(@pubsub_name, "ra", {:comment_created, category, comment})
+    {:noreply, socket}
+  end
 
+  @impl true
+  def handle_info({:comment_created, category, comment}, socket) do
     {:noreply, stream_insert(socket, String.to_existing_atom(category), comment)}
   end
 
