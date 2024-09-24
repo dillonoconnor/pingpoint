@@ -66,14 +66,16 @@ defmodule PingpointWeb.PresenceTracker do
     ~H"""
     <div class="flex justify-between items-center bg-neutral py-2 pr-4 rounded-lg border border-info text-center h-12 overflow-hidden">
       <span class="flex items-center gap-2">
-        <div class="avatar">
-          <div class="h-16 w-16">
-            <%= if @meta.avatar do %>
+        <div class="flex items-center justify-center h-16 w-16">
+          <%= if @meta.avatar do %>
+            <div class="avatar h-16 w-16">
               <img src={"/images/#{@meta.avatar}.png"} />
-            <% else %>
-              <.icon name="hero-question-mark-circle" />
-            <% end %>
-          </div>
+            </div>
+          <% else %>
+            <div class="flex items-center justify-center">
+              <.icon class="h-10 w-10" name="hero-question-mark-circle" />
+            </div>
+          <% end %>
         </div>
         <span class="line-clamp-1 pr-2"><%= @user %></span>
       </span>

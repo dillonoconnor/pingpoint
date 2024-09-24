@@ -2,18 +2,17 @@ defmodule PingpointWeb.RoomLive.Show do
   use PingpointWeb, :live_view
 
   alias Phoenix.PubSub
-  alias Pingpoint.Spaces
-  alias Pingpoint.Spaces.Room
   alias Pingpoint.TopicServer
   alias Pingpoint.Spaces
+  alias Pingpoint.Spaces.Room
+  alias PingpointWeb.CreateRoomModal
+  alias PingpointWeb.NewSessionModal
   alias PingpointWeb.Presence
   alias PingpointWeb.PresenceTracker
 
   @pubsub_name Pingpoint.PubSub
-  @create_room_form_default Spaces.change_room(%Room{}) |> to_form()
   @point_form_default to_form(%{})
   @topic_form_default to_form(%{"subject" => ""})
-  @user_form_default to_form(%{"username" => nil})
 
   @impl true
   def mount(params, session, socket) do
@@ -51,10 +50,8 @@ defmodule PingpointWeb.RoomLive.Show do
         params_room_id: String.to_integer(id),
         room_id: room_id,
         topic_id: topic_id,
-        create_room_form: @create_room_form_default,
         point_form: @point_form_default,
         topic_form: @topic_form_default,
-        user_form: @user_form_default,
         username: username,
         status: :complete
       )
@@ -112,16 +109,6 @@ defmodule PingpointWeb.RoomLive.Show do
   end
 
   @impl true
-  def handle_event("validate_room", %{"room" => room_params}, socket) do
-    changeset =
-      %Room{}
-      |> Spaces.change_room(room_params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign(socket, :create_room_form, to_form(changeset))}
-  end
-
-  @impl true
   def handle_event("save_room", %{"room" => room_params}, socket) do
     {:ok, room} = Spaces.create_room(room_params)
 
@@ -131,6 +118,16 @@ defmodule PingpointWeb.RoomLive.Show do
       |> push_event("hide_element", %{"id" => "create-room-modal"})
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("validate_room", %{"room" => room_params}, socket) do
+    changeset =
+      %Room{}
+      |> Spaces.change_room(room_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :create_room_form, to_form(changeset))}
   end
 
   @impl true

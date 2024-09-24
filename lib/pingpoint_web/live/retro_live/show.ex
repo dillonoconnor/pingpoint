@@ -3,6 +3,7 @@ defmodule PingpointWeb.RetroLive.Show do
 
   alias Phoenix.PubSub
   alias Pingpoint.RetroAgent
+  alias PingpointWeb.NewSessionModal
   alias PingpointWeb.PresenceTracker
 
   defmodule Comment do
@@ -47,6 +48,7 @@ defmodule PingpointWeb.RetroLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
+    <.live_component :if={!@username} module={NewSessionModal} id={:new} />
     <section class="grow mt-4 flex justify-between gap-8 max-w-screen-2xl">
       <.live_component module={PresenceTracker} id={:users} presence_payload={@presence_payload} />
       <div class="grow grid grid-cols-3 grid-rows-[1fr_8fr] gap-4">
